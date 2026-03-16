@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kratos — Find Your Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+<style>
+:root{--black:#080808;--white:#f2f0eb;--red:#e8111a;--rdim:rgba(232,17,26,.12);--gold:#c9a84c;--golddim:rgba(201,168,76,.15);--s1:#111;--s2:#181818;--s3:#222;--s4:#2a2a2a;--bdr:rgba(255,255,255,.08);--mu:rgba(255,255,255,.55);--mu2:rgba(255,255,255,.35);--grn:#10b981}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 40px;background:rgba(8,8,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.2em;color:var(--red)}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{color:var(--mu);text-decoration:none;font-size:.85rem;letter-spacing:.05em;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.btn-nav{background:var(--red);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn-nav:hover{opacity:.85}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 40px 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(232,17,26,.07) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 20% 70%,rgba(201,168,76,.05) 0%,transparent 60%)}
+.hero-grid{position:absolute;inset:0;z-index:0;opacity:.04;background-image:linear-gradient(var(--bdr) 1px,transparent 1px),linear-gradient(90deg,var(--bdr) 1px,transparent 1px);background-size:60px 60px}
+.hero-content{position:relative;z-index:1;max-width:800px;text-align:center}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--rdim);border:1px solid rgba(232,17,26,.25);color:var(--red);padding:6px 16px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:28px}
+.hero-tag::before{content:'';width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,10vw,7rem);line-height:.95;letter-spacing:.03em;margin-bottom:24px}
+h1 span{color:var(--red)}
+.hero-sub{font-size:clamp(.95rem,2vw,1.15rem);color:var(--mu);line-height:1.7;max-width:560px;margin:0 auto 40px;font-weight:300}
+.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--red);color:#fff;border:none;padding:14px 32px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(232,17,26,.3)}
+.btn-outline{background:transparent;color:var(--white);border:1px solid var(--bdr);padding:14px 32px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.04)}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:64px;padding-top:48px;border-top:1px solid var(--bdr)}
+.hero-stat-val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:.05em}
+.hero-stat-lbl{font-size:.72rem;color:var(--mu2);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.search-section{padding:80px 40px;max-width:1200px;margin:0 auto}
+.section-label{font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:12px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.2rem);letter-spacing:.05em;margin-bottom:40px;line-height:1}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.filter-inp{background:var(--s2);border:1px solid var(--bdr);color:var(--white);padding:11px 16px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;transition:border-color .2s;flex:1;min-width:180px}
+.filter-inp:focus{border-color:rgba(232,17,26,.4)}
+.filter-inp::placeholder{color:var(--mu2)}
+.filter-sel{background:var(--s2);border:1px solid var(--bdr);color:var(--white);padding:11px 14px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;cursor:pointer;min-width:160px}
+.filter-chip{padding:8px 16px;border-radius:100px;border:1px solid var(--bdr);background:transparent;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-chip.on{background:var(--rdim);border-color:rgba(232,17,26,.35);color:var(--red)}
+.coach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.coach-card{background:var(--s2);border:1px solid var(--bdr);border-radius:16px;padding:24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.coach-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(232,17,26,.06) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+.coach-card:hover{border-color:rgba(232,17,26,.25);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.coach-card:hover::before{opacity:1}
+.coach-card-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.coach-avatar{width:56px;height:56px;border-radius:14px;flex-shrink:0;background:var(--s3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--red);object-fit:cover}
+.coach-name{font-size:.95rem;font-weight:600;margin-bottom:3px}
+.coach-location{font-size:.75rem;color:var(--mu2)}
+.coach-rating{display:flex;align-items:center;gap:4px;font-size:.78rem;font-weight:600;color:var(--gold);margin-top:4px}
+.coach-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.coach-tag{padding:3px 10px;border-radius:100px;background:var(--s4);border:1px solid var(--bdr);font-size:.68rem;color:var(--mu)}
+.coach-bio{font-size:.8rem;color:var(--mu);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:16px}
+.coach-card-foot{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--bdr)}
+.coach-price{font-size:.82rem}
+.coach-price strong{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em}
+.coach-price span{color:var(--mu2);font-size:.72rem}
+.btn-view{background:var(--rdim);border:1px solid rgba(232,17,26,.25);color:var(--red);padding:7px 16px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-view:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.coach-exp-badge{position:absolute;top:14px;right:14px;background:var(--golddim);border:1px solid rgba(201,168,76,.25);color:var(--gold);padding:3px 9px;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:.08em}
+.empty-state{text-align:center;padding:80px 20px;color:var(--mu2);grid-column:1/-1}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bdr);border-radius:20px;width:100%;max-width:540px;overflow:hidden;margin:auto;position:relative}
+.modal-header{padding:32px 32px 24px;background:linear-gradient(135deg,var(--s2) 0%,var(--s1) 100%);border-bottom:1px solid var(--bdr);display:flex;gap:20px;align-items:flex-start}
+.modal-avatar{width:72px;height:72px;border-radius:16px;flex-shrink:0;background:var(--s3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red);object-fit:cover}
+.modal-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.05em;line-height:1;margin-bottom:4px}
+.modal-location{font-size:.8rem;color:var(--mu2);margin-bottom:8px}
+.modal-rating{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--gold);font-weight:600}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--mu);font-size:1.2rem;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .2s}
+.modal-close:hover{background:var(--s3);color:var(--white)}
+.modal-body{padding:24px 32px 32px}
+.modal-section{margin-bottom:20px}
+.modal-section-label{font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--mu2);margin-bottom:8px}
+.modal-bio{font-size:.88rem;color:var(--mu);line-height:1.7}
+.modal-tags{display:flex;flex-wrap:wrap;gap:6px}
+.modal-tag{padding:5px 12px;border-radius:100px;background:var(--s3);border:1px solid var(--bdr);font-size:.75rem;color:var(--mu)}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.modal-stat{background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:12px;text-align:center}
+.modal-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em}
+.modal-stat-lbl{font-size:.62rem;color:var(--mu2);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.connect-code-box{background:var(--s3);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.connect-code{font-family:'DM Mono',monospace;font-size:1.4rem;letter-spacing:.25em;color:var(--white)}
+.btn-copy{background:var(--rdim);border:1px solid rgba(232,17,26,.25);color:var(--red);padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-copy:hover{background:var(--red);color:#fff}
+.connect-msg{font-size:.76rem;padding:8px 12px;border-radius:8px;margin-top:4px;display:none}
+.connect-msg.ok{background:rgba(16,185,129,.1);color:var(--grn);border:1px solid rgba(16,185,129,.2)}
+.how-section{padding:80px 40px;background:var(--s1);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.how-inner{max-width:1000px;margin:0 auto}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:48px}
+.how-step{padding:28px 24px;background:var(--s2);border:1px solid var(--bdr);border-radius:16px;position:relative}
+.how-num{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:var(--red);opacity:.15;line-height:1;position:absolute;top:16px;right:20px}
+.how-icon{font-size:1.8rem;margin-bottom:14px}
+.how-title{font-size:.95rem;font-weight:600;margin-bottom:8px}
+.how-desc{font-size:.8rem;color:var(--mu);line-height:1.6}
+footer{padding:40px;text-align:center;color:var(--mu2);font-size:.75rem;border-top:1px solid var(--bdr)}
+footer a{color:var(--red);text-decoration:none}
+.skeleton{background:linear-gradient(90deg,var(--s2) 25%,var(--s3) 50%,var(--s2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media(max-width:640px){nav{padding:14px 20px}.nav-links{gap:16px}.hero{padding:100px 20px 60px}.hero-stats{gap:24px}.search-section{padding:60px 20px}.how-section{padding:60px 20px}.modal-header{padding:24px 20px 20px}.modal-body{padding:20px 20px 28px}.modal-stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">KRATOS</div>
+  <div class="nav-links">
+    <a href="#coaches">Find a Coach</a>
+    <a href="#how">How It Works</a>
+    <a href="https://dcarera-jpg.github.io/Kratos_David/" target="_blank">Coach Login</a>
+    <button class="btn-nav" onclick="document.getElementById('coaches').scrollIntoView({behavior:'smooth'})">Get Started</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag">&#128293; The PT Platform Built Different</div>
+    <h1>FIND YOUR<br><span>PERFECT</span><br>COACH</h1>
+    <p class="hero-sub">Connect with elite personal trainers who build programs around you — not templates. Real coaches. Real results.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('coaches').scrollIntoView({behavior:'smooth'})">Browse Coaches</button>
+      <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-val" id="stat-coaches">—</div><div class="hero-stat-lbl">Coaches</div></div>
+      <div><div class="hero-stat-val" id="stat-athletes">—</div><div class="hero-stat-lbl">Athletes</div></div>
+      <div><div class="hero-stat-val">100%</div><div class="hero-stat-lbl">Custom Programs</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="search-section" id="coaches">
+  <div class="section-label">Find Your Coach</div>
+  <div class="section-title">BROWSE COACHES</div>
+  <div class="filters">
+    <input class="filter-inp" id="f-search" placeholder="Search by name or specialization..." oninput="filterCoaches()">
+    <select class="filter-sel" id="f-state" onchange="filterCoaches()">
+      <option value="">All States</option>
+      <option>CA</option><option>NY</option><option>TX</option><option>FL</option>
+      <option>IL</option><option>WA</option><option>CO</option><option>GA</option>
+      <option>AZ</option><option>NC</option><option>MA</option><option>PA</option>
+    </select>
+    <select class="filter-sel" id="f-sort" onchange="filterCoaches()">
+      <option value="rating">Top Rated</option>
+      <option value="price_asc">Price: Low to High</option>
+      <option value="price_desc">Price: High to Low</option>
+      <option value="exp">Most Experienced</option>
+    </select>
+  </div>
+  <div class="filters" id="spec-chips" style="margin-bottom:32px"></div>
+  <div class="coach-grid" id="coach-grid">
+    <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:16px;padding:24px"><div style="display:flex;gap:14px;margin-bottom:16px"><div class="skeleton" style="width:56px;height:56px;border-radius:14px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:60%;margin-bottom:8px"></div><div class="skeleton" style="height:11px;width:40%"></div></div></div><div class="skeleton" style="height:11px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:60%"></div></div>
+    <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:16px;padding:24px"><div style="display:flex;gap:14px;margin-bottom:16px"><div class="skeleton" style="width:56px;height:56px;border-radius:14px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:55%;margin-bottom:8px"></div><div class="skeleton" style="height:11px;width:35%"></div></div></div><div class="skeleton" style="height:11px;width:75%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:50%"></div></div>
+    <div style="background:var(--s2);border:1px solid var(--bdr);border-radius:16px;padding:24px"><div style="display:flex;gap:14px;margin-bottom:16px"><div class="skeleton" style="width:56px;height:56px;border-radius:14px;flex-shrink:0"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:65%;margin-bottom:8px"></div><div class="skeleton" style="height:11px;width:45%"></div></div></div><div class="skeleton" style="height:11px;width:85%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:55%"></div></div>
+  </div>
+</section>
+
+<section class="how-section" id="how">
+  <div class="how-inner">
+    <div class="section-label">Simple Process</div>
+    <div class="section-title">HOW IT WORKS</div>
+    <div class="how-grid">
+      <div class="how-step"><div class="how-num">01</div><div class="how-icon">&#128269;</div><div class="how-title">Browse Coaches</div><div class="how-desc">Filter by specialization, location, price and rating. Find the coach that matches your goals.</div></div>
+      <div class="how-step"><div class="how-num">02</div><div class="how-icon">&#128279;</div><div class="how-title">Copy the Join Code</div><div class="how-desc">Every coach has a unique code. Copy it from their profile, then sign up on the app.</div></div>
+      <div class="how-step"><div class="how-num">03</div><div class="how-icon">&#128203;</div><div class="how-title">Get Your Program</div><div class="how-desc">Your coach builds a custom 10-day training cycle tailored to your goals and assessment.</div></div>
+      <div class="how-step"><div class="how-num">04</div><div class="how-icon">&#128200;</div><div class="how-title">Track &amp; Progress</div><div class="how-desc">Log every set, track PRs, and watch your numbers go up. Your coach adjusts as you grow.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.2em;color:var(--red);margin-bottom:12px">KRATOS</div>
+  <p>The training platform built for coaches who care. &nbsp;&middot;&nbsp; <a href="https://dcarera-jpg.github.io/Kratos_David/">Coach Login</a></p>
+  <p style="margin-top:8px;font-size:.65rem;opacity:.5">&copy; 2026 Kratos Training. All rights reserved.</p>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    <div class="modal-header" id="modal-header"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+var SUPABASE_URL='https://tzkokgpxqjeyuvyvmqtt.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6a29rZ3B4cWpleXV2eXZtcXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjg2ODEsImV4cCI6MjA4ODg0NDY4MX0.sIqJgyh1bAsKNHlFU5Q7LgpaoEJrZlgMlIH4EQx0hyo';
+var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var allCoaches=[];
+var activeSpec='';
+var SPECS=['Strength & Power','Weight Loss','Muscle Building','Endurance','Sports Performance','Mobility','HIIT','Bodyweight','Female-Focused','Nutrition'];
+
+async function init(){
+  buildSpecChips();
+  await Promise.all([loadCoaches(),loadStats()]);
+}
+
+function buildSpecChips(){
+  var el=document.getElementById('spec-chips');
+  el.innerHTML=['All',...SPECS].map(function(s){
+    return '<button class="filter-chip'+(s==='All'?' on':'')+'" data-spec="'+h(s)+'">'+h(s)+'</button>';
+  }).join('');
+  el.addEventListener('click',function(e){
+    var btn=e.target.closest('.filter-chip');
+    if(!btn)return;
+    activeSpec=btn.dataset.spec==='All'?'':btn.dataset.spec;
+    document.querySelectorAll('.filter-chip').forEach(function(b){b.classList.toggle('on',b.dataset.spec===(activeSpec||'All'));});
+    filterCoaches();
+  });
+}
+
+async function loadCoaches(){
+  var r=await sb.from('coach_profiles').select('*,profiles!inner(id,full_name,email,join_code,role)').eq('is_public',true).order('rating',{ascending:false});
+  if(!r.data){renderCoaches([]);return;}
+  allCoaches=r.data.filter(function(c){return c.profiles&&(c.profiles.role==='coach'||c.profiles.role==='admin');});
+  renderCoaches(allCoaches);
+}
+
+async function loadStats(){
+  var c=await sb.from('coach_profiles').select('id',{count:'exact',head:true}).eq('is_public',true);
+  var a=await sb.from('profiles').select('id',{count:'exact',head:true}).eq('role','athlete');
+  var ce=document.getElementById('stat-coaches');var ae=document.getElementById('stat-athletes');
+  if(ce)ce.textContent=(c.count||0)+'+';
+  if(ae)ae.textContent=(a.count||0)+'+';
+}
+
+function filterCoaches(){
+  var q=(document.getElementById('f-search').value||'').toLowerCase();
+  var state=document.getElementById('f-state').value;
+  var sort=document.getElementById('f-sort').value;
+  var list=allCoaches.filter(function(c){
+    var name=(c.profiles.full_name||'').toLowerCase();
+    var specs=(c.specializations||[]).join(' ').toLowerCase();
+    var bio=(c.bio||'').toLowerCase();
+    if(q&&!name.includes(q)&&!specs.includes(q)&&!bio.includes(q))return false;
+    if(state&&c.location_state!==state)return false;
+    if(activeSpec&&!(c.specializations||[]).includes(activeSpec))return false;
+    return true;
+  });
+  list.sort(function(a,b){
+    if(sort==='price_asc')return(a.price_per_month||0)-(b.price_per_month||0);
+    if(sort==='price_desc')return(b.price_per_month||0)-(a.price_per_month||0);
+    if(sort==='exp')return(b.years_exp||0)-(a.years_exp||0);
+    return(b.rating||0)-(a.rating||0);
+  });
+  renderCoaches(list);
+}
+
+function renderCoaches(list){
+  var grid=document.getElementById('coach-grid');
+  if(!list.length){grid.innerHTML='<div class="empty-state"><div style="font-size:3rem;margin-bottom:16px">&#128269;</div><div style="font-size:1.1rem;font-weight:600;margin-bottom:8px">No coaches found</div><div style="font-size:.85rem">Try adjusting your filters</div></div>';return;}
+  grid.innerHTML=list.map(buildCard).join('');
+  grid.querySelectorAll('.coach-card').forEach(function(card){card.addEventListener('click',function(){openModal(card.dataset.id);});});
+}
+
+function buildCard(c){
+  var name=c.profiles.full_name||'Coach';
+  var loc=[c.location_city,c.location_state].filter(Boolean).join(', ')||'Remote';
+  var rating=c.rating?parseFloat(c.rating).toFixed(1):'New';
+  var stars=c.rating?'&#9733;'.repeat(Math.round(c.rating))+'&#9734;'.repeat(5-Math.round(c.rating)):'&#9734;&#9734;&#9734;&#9734;&#9734;';
+  var price=c.price_per_month?'$'+c.price_per_month+'/mo':'Contact';
+  var specs=(c.specializations||[]).slice(0,3);
+  var exp=c.years_exp?c.years_exp+'yr exp':'';
+  var avatar=c.avatar_url?'<img src="'+h(c.avatar_url)+'" class="coach-avatar" style="border-radius:14px">'
+    :'<div class="coach-avatar">'+name.charAt(0).toUpperCase()+'</div>';
+  return '<div class="coach-card" data-id="'+h(c.id)+'">'
+    +(exp?'<div class="coach-exp-badge">'+exp+'</div>':'')
+    +'<div class="coach-card-head">'+avatar
+    +'<div><div class="coach-name">'+h(name)+'</div>'
+    +'<div class="coach-location">&#128205; '+h(loc)+'</div>'
+    +'<div class="coach-rating">'+stars+' <span style="color:var(--mu2);font-weight:400">('+rating+')</span></div>'
+    +'</div></div>'
+    +'<div class="coach-tags">'+specs.map(function(s){return'<span class="coach-tag">'+h(s)+'</span>';}).join('')+'</div>'
+    +'<div class="coach-bio">'+h(c.bio||'Dedicated personal trainer committed to helping you reach your goals.')+'</div>'
+    +'<div class="coach-card-foot"><div class="coach-price"><strong>'+price+'</strong>'+(c.price_per_month?' <span>per month</span>':'')+'</div>'
+    +'<button class="btn-view">View Profile</button></div></div>';
+}
+
+function openModal(coachId){
+  var c=allCoaches.find(function(x){return x.id===coachId;});
+  if(!c)return;
+  var name=c.profiles.full_name||'Coach';
+  var loc=[c.location_city,c.location_state].filter(Boolean).join(', ')||'Remote';
+  var rating=c.rating?parseFloat(c.rating).toFixed(1):'New';
+  var stars=c.rating?'&#9733;'.repeat(Math.round(c.rating))+'&#9734;'.repeat(5-Math.round(c.rating)):'New coach';
+  var avatar=c.avatar_url?'<img src="'+h(c.avatar_url)+'" class="modal-avatar" style="border-radius:16px">'
+    :'<div class="modal-avatar">'+name.charAt(0).toUpperCase()+'</div>';
+  document.getElementById('modal-header').innerHTML=avatar
+    +'<div><div class="modal-name">'+h(name)+'</div>'
+    +'<div class="modal-location">&#128205; '+h(loc)+'</div>'
+    +'<div class="modal-rating">'+stars+' <span style="color:var(--mu2);font-size:.76rem;font-weight:400">'+rating+(c.review_count?' &middot; '+c.review_count+' reviews':'')+'</span></div></div>';
+  var priceStr=c.price_per_month?'$'+c.price_per_month:'Free';
+  var code=c.profiles.join_code||'';
+  document.getElementById('modal-body').innerHTML=
+    '<div class="modal-section"><div class="modal-section-label">About</div>'
+    +'<div class="modal-bio">'+h(c.bio||'Dedicated personal trainer committed to helping you achieve your goals.')+'</div></div>'
+    +((c.specializations||[]).length?'<div class="modal-section"><div class="modal-section-label">Specializations</div><div class="modal-tags">'+(c.specializations||[]).map(function(s){return'<span class="modal-tag">'+h(s)+'</span>';}).join('')+'</div></div>':'')
+    +(c.certifications?'<div class="modal-section"><div class="modal-section-label">Certifications</div><div style="font-size:.82rem;color:var(--mu)">'+h(c.certifications)+'</div></div>':'')
+    +'<div class="modal-section"><div class="modal-stats">'
+    +'<div class="modal-stat"><div class="modal-stat-val" style="color:var(--red)">'+(c.years_exp||'&#8212;')+'</div><div class="modal-stat-lbl">Yrs Exp</div></div>'
+    +'<div class="modal-stat"><div class="modal-stat-val" style="color:var(--gold)">'+(c.rating?parseFloat(c.rating).toFixed(1):'&#8212;')+'</div><div class="modal-stat-lbl">Rating</div></div>'
+    +'<div class="modal-stat"><div class="modal-stat-val">'+priceStr+'</div><div class="modal-stat-lbl">Per Month</div></div>'
+    +'</div></div>'
+    +(code?'<div class="modal-section"><div class="modal-section-label">Join Code</div>'
+    +'<div class="connect-code-box"><div class="connect-code">'+h(code)+'</div>'
+    +'<button class="btn-copy" id="copy-btn">Copy</button></div>'
+    +'<div class="connect-msg" id="connect-msg"></div>'
+    +'<div style="font-size:.76rem;color:var(--mu2);margin-bottom:12px">Copy this code, sign up on the app as an athlete, and enter it to connect.</div>'
+    +'<a href="https://dcarera-jpg.github.io/Kratos_David/" target="_blank" style="display:block;text-align:center;background:var(--s3);border:1px solid var(--bdr);color:var(--white);padding:12px;border-radius:10px;text-decoration:none;font-size:.84rem">Open App &amp; Sign Up &#8594;</a></div>'
+    :'<div class="modal-section"><div style="font-size:.82rem;color:var(--mu)">Contact this coach to get started.</div></div>');
+  if(code){
+    document.getElementById('copy-btn').addEventListener('click',function(){
+      navigator.clipboard.writeText(code).then(function(){
+        var msg=document.getElementById('connect-msg');
+        msg.textContent='&#10003; Copied! Open the app, sign up as athlete, enter this code.';
+        msg.className='connect-msg ok';msg.style.display='block';
+      });
+    });
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
+<\/script>
+</body>
+</html>
