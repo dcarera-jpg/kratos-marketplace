@@ -6,7 +6,7 @@
 <title>Kratos — Find Your Coach</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"><\/script>
 <style>
 :root{--black:#080808;--white:#f2f0eb;--red:#e8111a;--rdim:rgba(232,17,26,.12);--gold:#c9a84c;--golddim:rgba(201,168,76,.15);--s1:#111;--s2:#181818;--s3:#222;--s4:#2a2a2a;--bdr:rgba(255,255,255,.08);--mu:rgba(255,255,255,.55);--mu2:rgba(255,255,255,.35);--grn:#10b981}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -196,7 +196,7 @@ footer a{color:var(--red);text-decoration:none}
 <script>
 var SUPABASE_URL='https://tzkokgpxqjeyuvyvmqtt.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6a29rZ3B4cWpleXV2eXZtcXR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjg2ODEsImV4cCI6MjA4ODg0NDY4MX0.sIqJgyh1bAsKNHlFU5Q7LgpaoEJrZlgMlIH4EQx0hyo';
-var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var sb=(supabase.createClient||window.supabase.createClient)(SUPABASE_URL,SUPABASE_KEY);
 var allCoaches=[];
 var activeSpec='';
 var SPECS=['Strength & Power','Weight Loss','Muscle Building','Endurance','Sports Performance','Mobility','HIIT','Bodyweight','Female-Focused','Nutrition'];
