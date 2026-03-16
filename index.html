@@ -336,6 +336,8 @@ function openModal(coachId){
     +'<div class="modal-stat"><div class="modal-stat-val">'+priceStr+'</div><div class="modal-stat-lbl">Per Month</div></div>'
     +'</div></div>'
     +(c.instagram_url||c.tiktok_url||c.youtube_url||c.website_url ? '<div class="modal-section"><div class="modal-section-label">Follow & Connect</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+( c.instagram_url?'<a href="'+h(c.instagram_url)+'" target="_blank" style="display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--bdr);color:var(--white);padding:8px 12px;border-radius:9px;text-decoration:none;font-size:.78rem">&#128247; Instagram</a>':'')+(c.tiktok_url   ?'<a href="'+h(c.tiktok_url)   +'" target="_blank" style="display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--bdr);color:var(--white);padding:8px 12px;border-radius:9px;text-decoration:none;font-size:.78rem">&#127926; TikTok</a>':'')+(c.youtube_url  ?'<a href="'+h(c.youtube_url)  +'" target="_blank" style="display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--bdr);color:var(--white);padding:8px 12px;border-radius:9px;text-decoration:none;font-size:.78rem">&#9654; YouTube</a>':'')+(c.website_url  ?'<a href="'+h(c.website_url)  +'" target="_blank" style="display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--bdr);color:var(--white);padding:8px 12px;border-radius:9px;text-decoration:none;font-size:.78rem">&#127758; Website</a>':'')+'</div></div>' : '')
+    +'<div class="modal-section" id="modal-reviews-'+h(c.id)+'"><div class="modal-section-label">Reviews</div>'
+    +'<div style="font-size:.75rem;color:var(--mu2)">Loading...</div></div>'
     +(code?'<div class="modal-section"><div class="modal-section-label">Join Code</div>'
     +'<div class="connect-code-box"><div class="connect-code">'+h(code)+'</div>'
     +'<button class="btn-copy" id="copy-btn">Copy</button></div>'
@@ -354,6 +356,36 @@ function openModal(coachId){
   }
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
+  // Load reviews async
+  loadModalReviews(c.id);
+}
+
+async function loadModalReviews(coachId) {
+  var el = document.getElementById('modal-reviews-'+coachId);
+  if (!el) return;
+  var r = await sb.from('reviews')
+    .select('rating,title,body,created_at,profiles!athlete_id(full_name)')
+    .eq('coach_id', coachId)
+    .order('created_at',{ascending:false})
+    .limit(5);
+  if (!r.data || !r.data.length) {
+    el.innerHTML = '<div class="modal-section-label">Reviews</div><div style="font-size:.78rem;color:var(--mu2)">No reviews yet — be the first!</div>';
+    return;
+  }
+  el.innerHTML = '<div class="modal-section-label">Reviews</div>' +
+    r.data.map(function(rev){
+      var stars = '★'.repeat(rev.rating)+'☆'.repeat(5-rev.rating);
+      var name  = rev.profiles ? (rev.profiles.full_name||'Athlete') : 'Athlete';
+      var date  = new Date(rev.created_at).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+        +'<span style="font-size:.8rem;font-weight:600">'+h(name)+'</span>'
+        +'<span style="font-size:.68rem;color:var(--mu2)">'+date+'</span></div>'
+        +'<div style="color:var(--gold);font-size:.85rem;margin-bottom:3px">'+stars+'</div>'
+        +(rev.title?'<div style="font-size:.8rem;font-weight:600;margin-bottom:2px">'+h(rev.title)+'</div>':'')
+        +(rev.body ?'<div style="font-size:.78rem;color:var(--mu);line-height:1.5">'+h(rev.body)+'</div>':'')
+        +'</div>';
+    }).join('');
 }
 
 function closeModal(){
