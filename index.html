@@ -202,6 +202,29 @@ var activeSpec='';
 var SPECS=['Strength & Power','Weight Loss','Muscle Building','Endurance','Sports Performance','Mobility','HIIT','Bodyweight','Female-Focused','Nutrition'];
 
 async function init(){
+  // Debug: show status on page
+  var grid = document.getElementById('coach-grid');
+  
+  // Test 1: Supabase loaded?
+  if (typeof supabase === 'undefined') {
+    grid.innerHTML = '<div style="color:red;padding:20px;grid-column:1/-1">ERROR: Supabase not loaded. Check CDN.</div>';
+    return;
+  }
+  grid.innerHTML = '<div style="color:green;padding:20px;grid-column:1/-1">✓ Supabase loaded. Testing DB connection...</div>';
+
+  // Test 2: DB query
+  try {
+    var r = await sb.from('coach_profiles').select('id,is_public').limit(5);
+    if (r.error) {
+      grid.innerHTML = '<div style="color:red;padding:20px;grid-column:1/-1">DB ERROR: ' + r.error.message + '</div>';
+      return;
+    }
+    grid.innerHTML = '<div style="color:green;padding:20px;grid-column:1/-1">✓ DB connected. Rows: ' + (r.data||[]).length + '. Loading coaches...</div>';
+  } catch(e) {
+    grid.innerHTML = '<div style="color:red;padding:20px;grid-column:1/-1">EXCEPTION: ' + e.message + '</div>';
+    return;
+  }
+
   buildSpecChips();
   await Promise.all([loadCoaches(),loadStats()]);
 }
